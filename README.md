@@ -12,14 +12,15 @@ A tool that combines web scraping with AI-based analysis to audit SEO, UX, and c
 ## 🧠 AI Design Decisions
 
 - **Structured Output**: Uses JSON schemas for deterministic, machine-readable results.
+- **Decision Intelligence**: AI calculates an overall Audit Score (0-100) and identifies the Critical Path (Top 3 Issues).
 - **Grounded Analysis**: Rules enforce that every insight references specific metrics (e.g., "H1 count is 1").
-- **Hallucination Control**: The system prompt restricts the AI context to the scraped content only.
+- **Rationale Mapping**: Every recommendation includes a "Rationale" explaining the business impact and why it matters.
 
 ## 🛠️ Prompt Engineering
 
 The analysis uses a balanced prompt structure:
 1. **System Prompt**: Defines the persona (Expert Audit Engine) and enforces operational rules (JSON-only, no hallucinations, mandatory metric references).
-2. **User Prompt**: Provides structured metrics JSON and cleaned text for multi-vector analysis.
+2. **User Prompt**: Provides structured metrics JSON and provides the context for scoring and prioritization.
 
 ### 🧾 Prompt Logs
 The system captures the following logs for transparency and auditing:
@@ -33,12 +34,14 @@ The system captures the following logs for transparency and auditing:
 
 - **AI-Native Implementation**: Relies on structured patterns and grounded evidence.
 - **Orchestration**: Separation between scraping (data acquisition) and AI (synthesis).
-- **Practicality**: Every recommendation is tied to a specific metric.
+- **Practicality**: Every recommendation is tied to a specific metric and a clear rationale.
 
 ## 📄 Example Output
 
 ```json
 {
+  "auditScore": 62,
+  "topIssues": ["100% images missing alt text", "0 external links detected"],
   "insights": {
     "seo": {
       "summary": "1 H1 is present, but 0 external links limit authority signals.",
@@ -49,6 +52,7 @@ The system captures the following logs for transparency and auditing:
     {
       "issue": "Missing external links",
       "action": "Add authoritative outbound links to improve credibility.",
+      "rationale": "Improves domain authority and helps search engines verify site relevancy.",
       "priority": "medium"
     }
   ]

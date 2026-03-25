@@ -11,10 +11,13 @@ export interface AIRecommendation {
   evidence: string;
   impact: string;
   action: string;
+  rationale?: string;
   priority: 'high' | 'medium' | 'low';
 }
 
 export interface AIAnalysisResponse {
+  auditScore: number;
+  topIssues: string[];
   insights: {
     seo: AIInsight;
     messaging: AIInsight;
@@ -59,8 +62,8 @@ export async function analyzeWithAI(
   const systemPrompt = `You are an expert website audit engine.
 
 Strict rules for your response:
-1. DATA-FIRST ONLY: Start every insight with a metric. Avoid conversational filler like "The page has", "It appears", or "Significant issue".
-2. DIRECT & CONCISE: Use short, professional sentences. No over-explaining.
+1. DATA-FIRST ONLY: Start every insight with a metric. Avoid conversational filler.
+2. DIRECT & CONCISE: Use short, professional sentences.
 3. NO HALLUCINATION: Only use provided metrics and content.
 4. METRIC GROUNDING: Every claim must reference a numerical metric or specific text found.
 5. NO MARKDOWN: Return strictly valid JSON only.
@@ -69,6 +72,8 @@ Tone example: "1 H1, 5 H2s, and 10 H3s form a structured hierarchy. However, 0 e
 
 Expected JSON format:
 {
+  "auditScore": number (0-100 based on alt text, links, content, and headings),
+  "topIssues": ["Issue 1 with metric", "Issue 2 with metric", "Issue 3 with metric"],
   "insights": {
     "seo": { "summary": "...", "evidence": ["..."] },
     "messaging": { "summary": "...", "evidence": ["..."] },
@@ -82,6 +87,7 @@ Expected JSON format:
       "evidence": "Numerical evidence",
       "impact": "Concise impact statement",
       "action": "Direct action to take",
+      "rationale": "One short sentence on 'Why it matters'",
       "priority": "high | medium | low"
     }
   ]
@@ -96,13 +102,10 @@ Content:
 ${truncatedContent}
 
 Tasks:
-- SEO & Architecture
-- Messaging & Clarity
-- Conversion Paths
-- Content Depth
-- User Experience
-
-Provide 3–5 prioritized recommendations with titles like "Missing alt text (28 images)".`;
+- Generate an overall Audit Score (0-100)
+- Identify the Top 3 critical issues
+- Analyze: SEO & Architecture, Messaging & Clarity, Conversion Paths, Content Depth, User Experience
+- Provide 3–5 prioritized recommendations with 'Why it matters' rationale.`;
 
   try {
     const response = await axios.post(
@@ -131,6 +134,8 @@ Provide 3–5 prioritized recommendations with titles like "Missing alt text (28
       const parsedData = JSON.parse(jsonString);
 
       return {
+        auditScore: parsedData.auditScore,
+        topIssues: parsedData.topIssues,
         insights: parsedData.insights,
         recommendations: parsedData.recommendations,
         logs: {

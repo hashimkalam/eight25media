@@ -10,7 +10,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [metrics, setMetrics] = useState<AuditMetrics | null>(null);
-  const [aiAnalysis, setAiAnalysis] = useState<Pick<AIAnalysisResponse, 'insights' | 'recommendations'> | null>(null);
+  const [aiAnalysis, setAiAnalysis] = useState<AIAnalysisResponse | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,10 +28,7 @@ export default function Home() {
       const { data } = await axios.post('/api/analyze', { url: finalUrl });
       setMetrics(data.metrics);
       if (data.insights) {
-        setAiAnalysis({
-          insights: data.insights,
-          recommendations: data.recommendations
-        });
+        setAiAnalysis(data);
       }
       if (data.error) {
         setError(data.error); 
@@ -47,17 +44,43 @@ export default function Home() {
     <main className="min-h-screen bg-slate-50 text-slate-900 py-16 px-6 font-sans">
       <div className="max-w-7xl mx-auto space-y-12">
         
-        {/* Professional Header */}
-        <header className="text-center space-y-3">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-            Website Audit Tool
-          </h1>
-          <p className="text-slate-500 text-base max-w-2xl mx-auto font-medium">
-            Analyze SEO, UX, and structure in seconds.
-          </p>
+        {/* Header */}
+        <header className="flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="space-y-2 text-center md:text-left">
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+              Website Audit Tool
+            </h1>
+            <p className="text-slate-500 text-sm font-medium">
+              Professional SEO, UX, and content structure analysis.
+            </p>
+          </div>
+          {aiAnalysis && (
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 flex items-center gap-6 shadow-sm">
+               <div className="relative w-16 h-16">
+                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                    <circle className="stroke-slate-100" strokeWidth="4" fill="none" r="16" cx="18" cy="18" />
+                    <circle 
+                      className={`${aiAnalysis.auditScore > 70 ? 'stroke-emerald-500' : aiAnalysis.auditScore > 40 ? 'stroke-amber-500' : 'stroke-red-500'}`} 
+                      strokeWidth="4" 
+                      strokeDasharray={`${aiAnalysis.auditScore}, 100`} 
+                      strokeLinecap="round" 
+                      fill="none" 
+                      r="16" cx="18" cy="18" 
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center font-bold text-lg">
+                    {aiAnalysis.auditScore}
+                  </div>
+               </div>
+               <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Overall Score</p>
+                  <p className="font-bold text-slate-900 text-sm">Decision Intelligence</p>
+               </div>
+            </div>
+          )}
         </header>
 
-        {/* Search Section */}
+        {/* Input Section */}
         <section className="bg-white p-2 rounded-2xl shadow-sm border border-slate-200 overflow-hidden max-w-4xl mx-auto">
           <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-2">
             <input
@@ -87,56 +110,59 @@ export default function Home() {
 
         {!metrics && !loading && (
           <div className="py-20 text-center">
-            <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Awaiting URL Input</p>
+            <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Awaiting Analysis</p>
           </div>
         )}
 
-        {loading && !metrics && (
+        {loading && (
           <div className="py-20 flex flex-col items-center justify-center space-y-4">
-            <div className="w-10 h-10 border-4 border-slate-200 border-t-slate-900 rounded-full animate-spin"></div>
-            <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Capturing Metrics...</p>
+            <div className="w-10 h-10 border-4 border-slate-100 border-t-slate-900 rounded-full animate-spin"></div>
+            <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Processing Context...</p>
           </div>
         )}
 
         {metrics && (
           <div className="space-y-10 animate-in fade-in slide-in-from-bottom-5 duration-700">
             
-            {/* 1. Metrics Card */}
-            <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-               <div className="p-6 border-b border-slate-100 bg-slate-50/50">
-                  <h2 className="font-bold text-slate-800 text-[10px] uppercase tracking-widest">Core Metrics</h2>
-               </div>
-               <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-slate-100">
-                  <MetricStat label="Word Count" value={metrics.wordCount.toLocaleString()} />
-                  <MetricStat label="Total Images" value={metrics.images} />
-                  <MetricStat label="H1 Count" value={metrics.headings.h1} />
-                  <MetricStat label="CTA Count" value={metrics.ctaCount} />
-               </div>
-               <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-slate-100 border-t border-slate-100">
-                  <MetricStat label="Internal Links" value={metrics.internalLinks} />
-                  <MetricStat label="External Links" value={metrics.externalLinks} />
-                  <MetricStat label="Missing Alt Tags" value={metrics.imagesMissingAlt} />
-                  <MetricStat label="Missing Alt (%)" value={`${metrics.imagesMissingAltPercentage}%`} />
-               </div>
-               <div className="p-6 border-t border-slate-100 space-y-4">
-                  <div>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Meta Title</p>
-                    <p className="text-sm text-slate-700 font-medium">{metrics.metaTitle || 'Missing'}</p>
+            {/* Context & Metrics Bar */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <section className="lg:col-span-3 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                  <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                    <h2 className="font-bold text-slate-800 text-[10px] uppercase tracking-widest">Core Metrics</h2>
+                    <div className="flex gap-4 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                       <span>{metrics.wordCount} Words</span>
+                       <span>{metrics.images} Images</span>
+                       <span>{metrics.internalLinks + metrics.externalLinks} Links</span>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Meta Description</p>
-                    <p className="text-sm text-slate-500 leading-relaxed font-medium">{metrics.metaDescription || 'Missing'}</p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-slate-100">
+                    <MetricStat label="H1 Structure" value={metrics.headings.h1} />
+                    <MetricStat label="CTA Depth" value={metrics.ctaCount} />
+                    <MetricStat label="Ext. Links" value={metrics.externalLinks} />
+                    <MetricStat label="Missing Alt" value={`${metrics.imagesMissingAltPercentage}%`} />
                   </div>
-               </div>
-            </section>
+                </section>
 
-            {/* Analysis & Actions Grid */}
+                <section className="bg-slate-900 rounded-2xl p-6 text-white space-y-4 shadow-xl">
+                    <h2 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Critical Path</h2>
+                    <ul className="space-y-3">
+                      {aiAnalysis ? aiAnalysis.topIssues.map((issue, i) => (
+                        <li key={i} className="text-xs flex gap-2">
+                           <span className="text-indigo-400 font-bold">{i+1}.</span>
+                           <span className="font-medium">{issue}</span>
+                        </li>
+                      )) : [1,2,3].map(i => <div key={i} className="h-4 bg-slate-800 rounded animate-pulse" />)}
+                    </ul>
+                </section>
+            </div>
+
+            {/* Analysis Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
               
-              {/* 2. Analysis Card */}
-              <div className="lg:col-span-2">
+              {/* Strategic Insights */}
+              <div className="lg:col-span-2 space-y-6">
                  <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 space-y-10">
-                    <h2 className="text-xl font-bold text-slate-900 border-b border-slate-50 pb-4">Analysis Breakdown</h2>
+                    <h2 className="text-xl font-bold text-slate-900 border-b border-slate-50 pb-4">Synthesis & Patterns</h2>
                     
                     {aiAnalysis ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
@@ -147,31 +173,36 @@ export default function Home() {
                         <InsightSection title="Content Depth" data={aiAnalysis.insights.content_depth} className="md:col-span-2" />
                       </div>
                     ) : (
-                      <div className="py-20 flex flex-col items-center justify-center text-slate-400 space-y-4">
-                         <div className="w-8 h-8 border-2 border-slate-100 border-t-slate-400 rounded-full animate-spin"></div>
-                         <p className="text-[9px] font-bold uppercase tracking-widest">Generating AI Synthesis...</p>
+                      <div className="py-20 flex flex-col items-center justify-center text-slate-300 space-y-4">
+                         <div className="w-8 h-8 border-2 border-slate-50 border-t-slate-400 rounded-full animate-spin"></div>
+                         <p className="text-[10px] font-bold uppercase tracking-widest">Thinking...</p>
                       </div>
                     )}
                  </section>
               </div>
 
-              {/* 3. Recommendations Card */}
+              {/* Priority Roadmap */}
               <div className="space-y-6">
-                 <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-2">Prioritized Roadmap</h3>
+                 <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-2">Strategy & Implementation</h3>
                  <div className="space-y-4">
                     {aiAnalysis?.recommendations.map((rec, i) => (
-                       <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4 transition-all hover:border-slate-300">
+                       <div key={i} className={`bg-white p-6 rounded-2xl border ${rec.priority === 'high' ? 'border-red-200' : 'border-slate-200'} shadow-sm space-y-4 transition-all hover:bg-slate-50/50`}>
                           <div className="flex justify-between items-start gap-4">
                              <h4 className="font-bold text-slate-900 text-sm leading-tight">{rec.issue}</h4>
                              <PriorityBadge priority={rec.priority} />
                           </div>
-                          <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                             <h5 className="text-[9px] font-black text-slate-400 uppercase mb-2 tracking-widest">Recommended Action</h5>
-                             <p className="text-[11px] text-slate-700 font-semibold leading-relaxed">{rec.action}</p>
-                          </div>
-                          <div className="text-[10px] text-slate-400 italic flex items-center gap-2">
-                             <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                             {rec.impact}
+                          
+                          <div className="space-y-2">
+                             <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                <h5 className="text-[9px] font-black text-slate-400 uppercase mb-2">Action Step</h5>
+                                <p className="text-[11px] text-slate-700 font-bold leading-relaxed">{rec.action}</p>
+                             </div>
+                             {rec.rationale && (
+                                <div className="p-1 px-4 border-l-2 border-indigo-100">
+                                  <h5 className="text-[9px] font-black text-indigo-400 uppercase mb-1">Why this matters</h5>
+                                  <p className="text-[11px] text-slate-500 font-medium leading-relaxed">{rec.rationale}</p>
+                                </div>
+                             )}
                           </div>
                        </div>
                     ))}
@@ -199,7 +230,7 @@ function MetricStat({ label, value }: { label: string; value: string | number })
 
 function PriorityBadge({ priority }: { priority: string }) {
   const styles: any = {
-    high: 'bg-red-50 border-red-100 text-red-600',
+    high: 'bg-red-500 text-white border-red-600',
     medium: 'bg-yellow-50 border-yellow-200 text-yellow-700',
     low: 'bg-slate-100 border-slate-200 text-slate-500',
   };

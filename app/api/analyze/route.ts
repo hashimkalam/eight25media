@@ -21,6 +21,8 @@ export async function POST(request: Request) {
       
       return NextResponse.json({
         metrics,
+        auditScore: aiResult.auditScore,
+        topIssues: aiResult.topIssues,
         insights: aiResult.insights,
         recommendations: aiResult.recommendations,
         logs: { ...aiResult.logs, modelUsed: aiResult.logs.modelUsed },
