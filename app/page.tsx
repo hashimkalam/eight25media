@@ -183,16 +183,22 @@ export default function Home() {
                  </div>
                  
                  {showLogs && (
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in slide-in-from-top-2 duration-500">
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-in slide-in-from-top-2 duration-500">
                       <div className="space-y-4">
-                         <h3 className="text-indigo-400 text-[10px] font-black uppercase tracking-widest">System Prompt (The Agent Profile)</h3>
-                         <pre className="bg-slate-950 p-4 rounded-xl text-[11px] text-slate-400 whitespace-pre-wrap font-mono border border-slate-800 max-h-[400px] overflow-y-auto custom-scrollbar">
+                         <h3 className="text-indigo-400 text-[10px] font-black uppercase tracking-widest">1. System Context</h3>
+                         <pre className="bg-slate-950 p-4 rounded-xl text-[10px] text-slate-400 whitespace-pre-wrap font-mono border border-slate-800 h-[500px] overflow-y-auto custom-scrollbar">
                            {aiAnalysis.logs.systemPrompt}
                          </pre>
                       </div>
                       <div className="space-y-4">
-                         <h3 className="text-emerald-400 text-[10px] font-black uppercase tracking-widest">Raw Model Analysis (Ground Truth JSON)</h3>
-                         <pre className="bg-slate-950 p-4 rounded-xl text-[11px] text-slate-400 whitespace-pre-wrap font-mono border border-slate-800 max-h-[400px] overflow-y-auto custom-scrollbar">
+                         <h3 className="text-amber-400 text-[10px] font-black uppercase tracking-widest">2. User Data (Scraped)</h3>
+                         <pre className="bg-slate-950 p-4 rounded-xl text-[10px] text-slate-400 whitespace-pre-wrap font-mono border border-slate-800 h-[500px] overflow-y-auto custom-scrollbar">
+                           {aiAnalysis.logs.userPrompt}
+                         </pre>
+                      </div>
+                      <div className="space-y-4">
+                         <h3 className="text-emerald-400 text-[10px] font-black uppercase tracking-widest">3. Raw Output (Synthesized)</h3>
+                         <pre className="bg-slate-950 p-4 rounded-xl text-[10px] text-slate-400 whitespace-pre-wrap font-mono border border-slate-800 h-[500px] overflow-y-auto custom-scrollbar">
                            {aiAnalysis.logs.rawOutput}
                          </pre>
                       </div>
@@ -220,7 +226,7 @@ export default function Home() {
                     ) : (
                       <div className="py-20 flex flex-col items-center justify-center text-slate-300 space-y-4">
                          <div className="w-8 h-8 border-2 border-slate-50 border-t-slate-400 rounded-full animate-spin"></div>
-                         <p className="text-[10px] font-bold uppercase tracking-widest">Analyzing Trace...</p>
+                         <p className="text-[10px] font-bold uppercase tracking-widest">Generating Audit...</p>
                       </div>
                     )}
                  </section>
