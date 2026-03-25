@@ -11,6 +11,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [metrics, setMetrics] = useState<AuditMetrics | null>(null);
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysisResponse | null>(null);
+  const [showLogs, setShowLogs] = useState(true);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,33 +56,35 @@ export default function Home() {
             </p>
           </div>
           {aiAnalysis && (
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 flex items-center gap-6 shadow-sm">
-               <div className="relative w-16 h-16">
-                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                    <circle className="stroke-slate-100" strokeWidth="4" fill="none" r="16" cx="18" cy="18" />
-                    <circle 
-                      className={`${aiAnalysis.auditScore > 70 ? 'stroke-emerald-500' : aiAnalysis.auditScore > 40 ? 'stroke-amber-500' : 'stroke-red-500'}`} 
-                      strokeWidth="4" 
-                      strokeDasharray={`${aiAnalysis.auditScore}, 100`} 
-                      strokeLinecap="round" 
-                      fill="none" 
-                      r="16" cx="18" cy="18" 
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center font-bold text-lg">
-                    {aiAnalysis.auditScore}
+            <div className="flex items-center gap-4">
+               <div className="bg-white border border-slate-200 rounded-2xl p-6 flex items-center gap-6 shadow-sm">
+                  <div className="relative w-16 h-16">
+                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                        <circle className="stroke-slate-100" strokeWidth="4" fill="none" r="16" cx="18" cy="18" />
+                        <circle 
+                          className={`${aiAnalysis.auditScore > 70 ? 'stroke-emerald-500' : aiAnalysis.auditScore > 40 ? 'stroke-amber-500' : 'stroke-red-500'}`} 
+                          strokeWidth="4" 
+                          strokeDasharray={`${aiAnalysis.auditScore}, 100`} 
+                          strokeLinecap="round" 
+                          fill="none" 
+                          r="16" cx="18" cy="18" 
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center font-bold text-lg">
+                        {aiAnalysis.auditScore}
+                      </div>
                   </div>
-               </div>
-               <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Overall Score</p>
-                  <p className="font-bold text-slate-900 text-sm">Decision Intelligence</p>
+                  <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Overall Score</p>
+                      <p className="font-bold text-slate-900 text-sm">Decision Intelligence</p>
+                  </div>
                </div>
             </div>
           )}
         </header>
 
         {/* Input Section */}
-        <section className="bg-white p-2 rounded-2xl shadow-sm border border-slate-200 overflow-hidden max-w-4xl mx-auto">
+        <section className="bg-white p-2 rounded-2xl shadow-sm border border-slate-200 overflow-hidden max-w-7xl mx-auto">
           <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-2">
             <input
               type="text"
@@ -103,7 +106,7 @@ export default function Home() {
         </section>
 
         {error && !metrics && (
-          <div className="p-4 bg-red-50 border border-red-100 text-red-600 rounded-xl text-center max-w-4xl mx-auto font-medium">
+          <div className="p-4 bg-red-50 border border-red-100 text-red-600 rounded-xl text-center max-w-7xl mx-auto font-medium">
             {error}
           </div>
         )}
@@ -124,7 +127,7 @@ export default function Home() {
         {metrics && (
           <div className="space-y-10 animate-in fade-in slide-in-from-bottom-5 duration-700">
             
-            {/* Context & Metrics Bar */}
+            {/* 1. Context & Metrics Bar */}
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 <section className="lg:col-span-3 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
                   <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
@@ -132,14 +135,15 @@ export default function Home() {
                     <div className="flex gap-4 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
                        <span>{metrics.wordCount} Words</span>
                        <span>{metrics.images} Images</span>
-                       <span>{metrics.internalLinks + metrics.externalLinks} Links</span>
+                       <span>{metrics.internalLinks + metrics.externalLinks} Total Links</span>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-slate-100">
-                    <MetricStat label="H1 Structure" value={metrics.headings.h1} />
-                    <MetricStat label="CTA Depth" value={metrics.ctaCount} />
-                    <MetricStat label="Ext. Links" value={metrics.externalLinks} />
-                    <MetricStat label="Missing Alt" value={`${metrics.imagesMissingAltPercentage}%`} />
+                  <div className="grid grid-cols-2 md:grid-cols-5 divide-x divide-slate-100">
+                    <MetricStat label="H1 Count" value={metrics.headings.h1} />
+                    <MetricStat label="H2 Count" value={metrics.headings.h2} />
+                    <MetricStat label="H3 Count" value={metrics.headings.h3} />
+                    <MetricStat label="Internal" value={metrics.internalLinks} />
+                    <MetricStat label="External" value={metrics.externalLinks} />
                   </div>
                 </section>
 
@@ -156,7 +160,48 @@ export default function Home() {
                 </section>
             </div>
 
-            {/* Analysis Grid */}
+            {/* 2. Reasoning Trace (Integrated Central Section) */}
+            {aiAnalysis && (
+              <section className="bg-slate-900 rounded-2xl p-8 border border-slate-800 shadow-2xl overflow-hidden">
+                 <div className="flex justify-between items-center mb-6">
+                    <div className="space-y-1">
+                      <h2 className="text-white font-bold text-sm uppercase tracking-widest flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                        Prompt Engineering Logs
+                      </h2>
+                      <p className="text-[10px] text-slate-500 font-medium">Underlying reasoning trace and ground-truth metrics mapping.</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                       <span className="text-slate-500 text-[10px] font-mono">MODEL: {aiAnalysis.logs.modelUsed}</span>
+                       <button 
+                         onClick={() => setShowLogs(!showLogs)}
+                         className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:bg-slate-800 transition-all border border-indigo-900/50 px-3 py-1.5 rounded-lg bg-slate-950"
+                       >
+                         {showLogs ? 'Collapse Trace' : 'Expand Trace'}
+                       </button>
+                    </div>
+                 </div>
+                 
+                 {showLogs && (
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in slide-in-from-top-2 duration-500">
+                      <div className="space-y-4">
+                         <h3 className="text-indigo-400 text-[10px] font-black uppercase tracking-widest">System Prompt (The Agent Profile)</h3>
+                         <pre className="bg-slate-950 p-4 rounded-xl text-[11px] text-slate-400 whitespace-pre-wrap font-mono border border-slate-800 max-h-[400px] overflow-y-auto custom-scrollbar">
+                           {aiAnalysis.logs.systemPrompt}
+                         </pre>
+                      </div>
+                      <div className="space-y-4">
+                         <h3 className="text-emerald-400 text-[10px] font-black uppercase tracking-widest">Raw Model Analysis (Ground Truth JSON)</h3>
+                         <pre className="bg-slate-950 p-4 rounded-xl text-[11px] text-slate-400 whitespace-pre-wrap font-mono border border-slate-800 max-h-[400px] overflow-y-auto custom-scrollbar">
+                           {aiAnalysis.logs.rawOutput}
+                         </pre>
+                      </div>
+                   </div>
+                 )}
+              </section>
+            )}
+
+            {/* 3. Synthesis & Analysis Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
               
               {/* Strategic Insights */}
@@ -175,7 +220,7 @@ export default function Home() {
                     ) : (
                       <div className="py-20 flex flex-col items-center justify-center text-slate-300 space-y-4">
                          <div className="w-8 h-8 border-2 border-slate-50 border-t-slate-400 rounded-full animate-spin"></div>
-                         <p className="text-[10px] font-bold uppercase tracking-widest">Thinking...</p>
+                         <p className="text-[10px] font-bold uppercase tracking-widest">Analyzing Trace...</p>
                       </div>
                     )}
                  </section>
@@ -186,20 +231,20 @@ export default function Home() {
                  <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-2">Strategy & Implementation</h3>
                  <div className="space-y-4">
                     {aiAnalysis?.recommendations.map((rec, i) => (
-                       <div key={i} className={`bg-white p-6 rounded-2xl border ${rec.priority === 'high' ? 'border-red-200' : 'border-slate-200'} shadow-sm space-y-4 transition-all hover:bg-slate-50/50`}>
+                       <div key={i} className={`bg-white p-6 rounded-2xl border ${rec.priority === 'high' ? 'border-red-200 shadow-md shadow-red-50/50' : 'border-slate-200'} shadow-sm space-y-4 transition-all hover:bg-slate-50/50 group`}>
                           <div className="flex justify-between items-start gap-4">
-                             <h4 className="font-bold text-slate-900 text-sm leading-tight">{rec.issue}</h4>
+                             <h4 className="font-bold text-slate-900 text-sm leading-tight group-hover:text-indigo-600 transition-colors">{rec.issue}</h4>
                              <PriorityBadge priority={rec.priority} />
                           </div>
                           
                           <div className="space-y-2">
                              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                                <h5 className="text-[9px] font-black text-slate-400 uppercase mb-2">Action Step</h5>
+                                <h5 className="text-[9px] font-black text-slate-400 uppercase mb-2 leading-none tracking-tight">Action Step</h5>
                                 <p className="text-[11px] text-slate-700 font-bold leading-relaxed">{rec.action}</p>
                              </div>
                              {rec.rationale && (
                                 <div className="p-1 px-4 border-l-2 border-indigo-100">
-                                  <h5 className="text-[9px] font-black text-indigo-400 uppercase mb-1">Why this matters</h5>
+                                  <h5 className="text-[9px] font-black text-indigo-400 uppercase mb-1 leading-none tracking-tight">Why it matters</h5>
                                   <p className="text-[11px] text-slate-500 font-medium leading-relaxed">{rec.rationale}</p>
                                 </div>
                              )}
@@ -253,7 +298,7 @@ function InsightSection({ title, data, className = '' }: { title: string; data: 
       </p>
       <div className="flex flex-wrap gap-2 pt-1 px-1">
         {data.evidence.map((item, i) => (
-          <span key={i} className="text-[9px] font-bold bg-slate-50 text-slate-400 border border-slate-100 px-2 py-0.5 rounded">
+          <span key={i} className="text-[9px] font-bold bg-slate-100 text-slate-500 border border-slate-200 px-2 py-0.5 rounded shadow-sm">
             {item}
           </span>
         ))}
